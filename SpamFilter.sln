@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter", "SpamFilter\SpamFilter.csproj", "{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter.Gpt", "SpamFilter.Gpt\SpamFilter.Gpt.csproj", "{3796229B-EBDB-40D1-8DB4-032DD8270FB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter.Mail", "SpamFilter.Mail\SpamFilter.Mail.csproj", "{C922FEA9-D008-49AF-A300-7458634AA267}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3796229B-EBDB-40D1-8DB4-032DD8270FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3796229B-EBDB-40D1-8DB4-032DD8270FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3796229B-EBDB-40D1-8DB4-032DD8270FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3796229B-EBDB-40D1-8DB4-032DD8270FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C922FEA9-D008-49AF-A300-7458634AA267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C922FEA9-D008-49AF-A300-7458634AA267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C922FEA9-D008-49AF-A300-7458634AA267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C922FEA9-D008-49AF-A300-7458634AA267}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
