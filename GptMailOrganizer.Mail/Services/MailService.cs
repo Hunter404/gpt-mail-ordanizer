@@ -70,6 +70,11 @@ public class MailService : IMailService
                 var subject = message.Subject;
 
                 var category = await CategorizeEmailAsync(sender, subject);
+                if (category == null)
+                {
+                    Console.WriteLine($"Couldn't categorize mail from {sender} with subject {subject} for unknown reason.");
+                    continue;
+                }
 
                 var targetFolder = folders.FirstOrDefault(f => f.Name == category);
                 if (targetFolder != null)
@@ -85,7 +90,7 @@ public class MailService : IMailService
         }
     }
 
-    private async Task<string> CategorizeEmailAsync(string sender, string subject)
+    private async Task<string?> CategorizeEmailAsync(string sender, string subject)
     {
         var prompt = $"Sender: \"{sender}\". \nSubject: \"{subject}\". \n" +
             "Is this email best categorized as: Personal, Work, Spam, Newsletters, Social, Purchases, or Other?";
@@ -94,7 +99,7 @@ public class MailService : IMailService
         var response = await _gptService.GenerateCompletionAsync(prompt);
 
         // Get the first response
-        var category = response.First().Text.Trim();
+        var category = response.FirstOrDefault()?.Text?.Trim();
 
         return category;
     }
