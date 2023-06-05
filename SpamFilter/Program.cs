@@ -15,7 +15,7 @@ using var host = Host.CreateDefaultBuilder(args)
 
             configuration
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", false, true)
                 .Build();
         })
     .ConfigureServices(

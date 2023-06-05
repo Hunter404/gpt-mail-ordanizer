@@ -1,8 +1,10 @@
 ﻿namespace SpamFilter.GptApi.Services;
 
 using Models;
+using OpenAI.Completions;
+using Choice = Models.Choice;
 
 public interface IGptService
 {
-    Task<GptResponse> GenerateCompletionAsync(string prompt);
+    Task<IReadOnlyList<Choice>> GenerateCompletionAsync(string prompt);
 }

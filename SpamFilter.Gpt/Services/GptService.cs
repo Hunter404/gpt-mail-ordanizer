@@ -4,6 +4,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Models;
+using OpenAI;
+using OpenAI.Completions;
+using OpenAI.Models;
+using Choice = Models.Choice;
 
 public class GptService : IGptService
 {
@@ -14,32 +18,20 @@ public class GptService : IGptService
         _apiKey = apiKey;
     }
 
-    public async Task<GptResponse> GenerateCompletionAsync(string prompt)
+    public async Task<IReadOnlyList<Choice>> GenerateCompletionAsync(string prompt)
     {
-        var httpClient = new HttpClient();
+        var auth = new OpenAIAuthentication(_apiKey);
+        var api = new OpenAIClient(auth);
 
-        var requestData = new
-        {
-            prompt,
-            max_tokens = 60
-        };
+        var result = await api.CompletionsEndpoint.CreateCompletionAsync(prompt, model: Model.Davinci);
 
-        var jsonString = JsonSerializer.Serialize(requestData);
-
-        var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-
-        var response = await httpClient.PostAsync("https://api.openai.com/v1/engines/davinci-codex/completions", httpContent);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var responseString = await response.Content.ReadAsStringAsync();
-            var generationResponse = JsonSerializer.Deserialize<GptResponse>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            return generationResponse
-                   ?? throw new FormatException($"Couldn't deserialize response from GPT-3 API.");
-        }
-
-        throw new Exception($"Request to GPT-3 API failed with status code {response.StatusCode}");
+        return result.Completions
+            .Select(
+            x => new Choice
+            {
+                Text = x.Text,
+                FinishReason = x.FinishReason,
+            })
+            .ToArray();
     }
 }

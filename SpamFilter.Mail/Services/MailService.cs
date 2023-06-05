@@ -22,7 +22,20 @@ public class MailService : IMailService
 
     public async Task RunAsync()
     {
-        await Task.Run(Main);
+        while (true)
+        {
+            try
+            {
+                await Task.Run(Main);
+            }
+            catch (Exception e)
+            {
+                // todo: catch exceptions earlier? Will do for now.
+                Console.WriteLine(e);
+
+                await Task.Delay(60 * 1000); // Restart in a minute in case we got rate throttled.
+            }
+        }
     }
 
     private async void Main()
@@ -39,21 +52,21 @@ public class MailService : IMailService
             }
 
             var inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadOnly);
+            await inbox.OpenAsync(FolderAccess.ReadWrite);
 
             if (inbox.Count <= initialMessageCount)
             {
-                await Task.Delay(60 * 1000); // Sleep for a minute.
+                await Task.Delay(60 * 1000);
 
                 continue;
             }
 
-            var folders = await client.GetFolder(client.PersonalNamespaces[0]).GetSubfoldersAsync(false);
+            var folders = await inbox.GetSubfoldersAsync(false);
 
             for (var i = initialMessageCount; i < inbox.Count; i++)
             {
                 var message = await inbox.GetMessageAsync(i);
-                var sender = message.Sender.ToString();
+                var sender = message.From.ToString();
                 var subject = message.Subject;
 
                 var category = await CategorizeEmailAsync(sender, subject);
@@ -61,8 +74,11 @@ public class MailService : IMailService
                 var targetFolder = folders.FirstOrDefault(f => f.Name == category);
                 if (targetFolder != null)
                 {
+                    Console.WriteLine($"Moved {subject} to {targetFolder}");
                     await inbox.MoveToAsync(i, targetFolder);
                 }
+
+                await Task.Delay(2000); // Prevent rate limits/throttling.
             }
 
             initialMessageCount = inbox.Count;
@@ -72,13 +88,13 @@ public class MailService : IMailService
     private async Task<string> CategorizeEmailAsync(string sender, string subject)
     {
         var prompt = $"Sender: \"{sender}\". \nSubject: \"{subject}\". \n" +
-            "Is this email best categorized as: 1) Personal, 2) Work, 3) Spam, 4) Newsletters, 5) Social, 6) Purchases, or 7) Other?";
+            "Is this email best categorized as: Personal, Work, Spam, Newsletters, Social, Purchases, or Other?";
 
         // Compose the request to the GPT-3 API
         var response = await _gptService.GenerateCompletionAsync(prompt);
 
         // Get the first response
-        var category = response.Choices.First().Text.Trim();
+        var category = response.First().Text.Trim();
 
         return category;
     }
