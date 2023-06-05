@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\GptMailOrganizer.Gpt\GptMailOrganizer.Gpt.csproj" />
       <ProjectReference Include="..\SpamFilter.Gpt\SpamFilter.Gpt.csproj" />
     </ItemGroup>
 

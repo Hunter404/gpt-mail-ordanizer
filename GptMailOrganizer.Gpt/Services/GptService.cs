@@ -1,11 +1,6 @@
-﻿namespace SpamFilter.GptApi.Services;
+﻿namespace GptMailOrganizer.Gpt.Services;
 
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using Models;
 using OpenAI;
-using OpenAI.Completions;
 using OpenAI.Models;
 using Choice = Models.Choice;
 

@@ -1,6 +1,4 @@
-﻿namespace SpamFilter.GptApi.Models;
-
-using System.Text.Json.Serialization;
+﻿namespace GptMailOrganizer.Gpt.Models;
 
 public class Choice
 {

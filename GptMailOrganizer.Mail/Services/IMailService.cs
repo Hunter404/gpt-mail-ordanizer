@@ -1,4 +1,4 @@
-﻿namespace SpamFilter.Mail.Services;
+﻿namespace GptMailOrganizer.Mail.Services;
 
 public interface IMailService
 {

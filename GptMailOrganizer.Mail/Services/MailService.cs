@@ -1,6 +1,6 @@
-﻿namespace SpamFilter.Mail.Services;
+﻿namespace GptMailOrganizer.Mail.Services;
 
-using GptApi.Services;
+using Gpt.Services;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Security;

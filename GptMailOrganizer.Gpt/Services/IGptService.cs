@@ -1,7 +1,5 @@
-﻿namespace SpamFilter.GptApi.Services;
+﻿namespace GptMailOrganizer.Gpt.Services;
 
-using Models;
-using OpenAI.Completions;
 using Choice = Models.Choice;
 
 public interface IGptService

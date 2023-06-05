@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-
-using SpamFilter.Mail.Services;
-using SpamFilter.GptApi.Services;
+using GptMailOrganizer.Gpt.Services;
+using GptMailOrganizer.Mail.Services;
 
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(
