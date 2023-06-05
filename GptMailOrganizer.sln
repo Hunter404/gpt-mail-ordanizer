@@ -1,10 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter", "SpamFilter\SpamFilter.csproj", "{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GptMailOrganizer", "GptMailOrganizer\GptMailOrganizer.csproj", "{CA2D4F3E-3507-4D13-AC07-6C82E00187A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter.Gpt", "SpamFilter.Gpt\SpamFilter.Gpt.csproj", "{3796229B-EBDB-40D1-8DB4-032DD8270FB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GptMailOrganizer.Gpt", "GptMailOrganizer.Gpt\GptMailOrganizer.Gpt.csproj", "{3796229B-EBDB-40D1-8DB4-032DD8270FB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpamFilter.Mail", "SpamFilter.Mail\SpamFilter.Mail.csproj", "{C922FEA9-D008-49AF-A300-7458634AA267}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GptMailOrganizer.Mail", "GptMailOrganizer.Mail\GptMailOrganizer.Mail.csproj", "{C922FEA9-D008-49AF-A300-7458634AA267}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
