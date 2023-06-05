@@ -5,7 +5,15 @@ Since the project involves sensitive user credentials I won't offer a pre-built 
 ## Setup
 1. Copy appsettings.json to appsettings.production.json
 2. Fill in the required fields.
-3. Compile and run.
+3. Make sure these folders exist under your Inbox or edit MainService.cs:91
+    a) Personal
+    b) Work
+    c) Spam
+    d) Newsletters
+    e) Social
+    f) Purchases
+    g) Other
+4. Compile and run.
 
 ## Roadmap
 I don't know where I will go with this honestly, come with suggestions.
