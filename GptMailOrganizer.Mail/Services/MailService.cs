@@ -65,6 +65,7 @@ public class MailService : IMailService
 
             for (var i = initialMessageCount; i < inbox.Count; i++)
             {
+                // todo: this method of grabbing all mails is probably flawed in that the list gets shorter while the loop gets longer. Find a better solution.
                 var message = await inbox.GetMessageAsync(i);
                 var sender = message.From.ToString();
                 var subject = message.Subject;
