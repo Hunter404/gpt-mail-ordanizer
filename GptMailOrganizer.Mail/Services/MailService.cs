@@ -1,36 +1,92 @@
 ﻿namespace GptMailOrganizer.Mail.Services;
 
+using System.Text;
 using Gpt.Services;
 using MailKit;
-using MailKit.Net.Imap;
 using MailKit.Security;
+using Models;
+using OpenAI.Chat;
+using ImapClient = MailKit.Net.Imap.ImapClient;
 
 public class MailService : IMailService
 {
-    private IGptService _gptService;
-    private string _imapTarget;
-    private string _username;
-    private string _password;
+    private readonly IGptService _gptService;
+    private readonly ImapSettings _settings;
 
-    public MailService(IGptService gptService, string imapTarget, string username, string password)
+    public MailService(IGptService gptService, ImapSettings settings)
     {
         _gptService = gptService;
-        _imapTarget = imapTarget;
-        _username = username;
-        _password = password;
+        _settings = settings;
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync() => await Task.Run(Main);
+
+    private async Task ConnectAndAuthenticateAsync(ImapClient imapClient)
+    {
+        if (!imapClient.IsConnected)
+        {
+            if (!Enum.TryParse<SecureSocketOptions>(_settings.SecureSocketOptions, out var secureSocketOptions))
+                secureSocketOptions = SecureSocketOptions.SslOnConnect;
+
+            await imapClient.ConnectAsync(_settings.Server, _settings.Port, secureSocketOptions);
+        }
+
+        if (!imapClient.IsAuthenticated)
+        {
+            await imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
+        }
+    }
+
+    private async void Main()
     {
         while (true)
         {
             try
             {
-                await Task.Run(Main);
+                using var client = new ImapClient();
+
+                while (true)
+                {
+                    await ConnectAndAuthenticateAsync(client);
+
+                    var inbox = client.Inbox;
+                    await inbox.OpenAsync(FolderAccess.ReadWrite);
+
+                    if (inbox.Count == 0)
+                    {
+                        await Task.Delay(60 * 1000);
+
+                        continue;
+                    }
+
+                    var folders = await inbox.GetSubfoldersAsync(false);
+                    var maxBatchSize = 50;
+                    var emails = new List<EmailRequest>();
+
+                    for (var i = 0; i < Math.Min(inbox.Count, maxBatchSize); i++)
+                    {
+                        // todo: this method of grabbing all mails is probably flawed in that the list gets shorter while the loop gets longer. Find a better solution.
+                        var message = await inbox.GetMessageAsync(i);
+                        var sender = message.From.ToString();
+                        var subject = message.Subject;
+
+                        emails.Add(new EmailRequest { Id = i, Sender = sender, Subject = subject });
+                    }
+
+                    var emailResponses = await CategorizeEmailChunkAsync(emails);
+                    foreach (var item in emailResponses)
+                    {
+                        var targetFolder = folders.FirstOrDefault(f => f.Name == item.Category);
+                        await inbox.MoveToAsync(item.Id, targetFolder);
+
+                        Console.WriteLine($"Moved {item.Id} to {targetFolder}");
+                    }
+
+                    await Task.Delay(2000); // Prevent rate limits/throttling.
+                }
             }
             catch (Exception e)
             {
-                // todo: catch exceptions earlier? Will do for now.
                 Console.WriteLine(e);
 
                 await Task.Delay(60 * 1000); // Restart in a minute in case we got rate throttled.
@@ -38,70 +94,55 @@ public class MailService : IMailService
         }
     }
 
-    private async void Main()
+    private async Task<List<EmailResponse>> CategorizeEmailChunkAsync(IReadOnlyList<EmailRequest> emails)
     {
-        using var client = new ImapClient();
-        var initialMessageCount = 0;
+        var system =
+            "Please categorize the following emails, each identified by a unique ID, into these categories:"
+            + "Personal,"
+            + "Work,"
+            + "Spam,"
+            + "Newsletters,"
+            + "Social,"
+            + "Purchases,"
+            + "and Other."
+            + "The format is ID,Sender,Subject."
+            + "Reply with the ID and category, separated by a comma, no space.";
 
-        while (true)
+        var user = string.Join("\n", emails.Select(x => $"{x.Id},{x.Sender},{x.Subject}"));
+
+        var prompt = new List<Message>()
         {
-            if (!client.IsConnected)
-            {
-                await client.ConnectAsync(_imapTarget, 993, SecureSocketOptions.SslOnConnect);
-                await client.AuthenticateAsync(_username, _password);
-            }
-
-            var inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadWrite);
-
-            if (inbox.Count <= initialMessageCount)
-            {
-                await Task.Delay(60 * 1000);
-
-                continue;
-            }
-
-            var folders = await inbox.GetSubfoldersAsync(false);
-
-            for (var i = initialMessageCount; i < inbox.Count; i++)
-            {
-                // todo: this method of grabbing all mails is probably flawed in that the list gets shorter while the loop gets longer. Find a better solution.
-                var message = await inbox.GetMessageAsync(i);
-                var sender = message.From.ToString();
-                var subject = message.Subject;
-
-                var category = await CategorizeEmailAsync(sender, subject);
-                if (category == null)
-                {
-                    Console.WriteLine($"Couldn't categorize mail from {sender} with subject {subject} for unknown reason.");
-                    continue;
-                }
-
-                var targetFolder = folders.FirstOrDefault(f => f.Name == category);
-                if (targetFolder != null)
-                {
-                    Console.WriteLine($"Moved {subject} to {targetFolder}");
-                    await inbox.MoveToAsync(i, targetFolder);
-                }
-
-                await Task.Delay(2000); // Prevent rate limits/throttling.
-            }
-
-            initialMessageCount = inbox.Count;
-        }
-    }
-
-    private async Task<string?> CategorizeEmailAsync(string sender, string subject)
-    {
-        var prompt = $"Sender: \"{sender}\". \nSubject: \"{subject}\". \n" +
-            "Is this email best categorized as: Personal, Work, Spam, Newsletters, Social, Purchases, or Other?";
+            new (Role.System, system),
+            new (Role.User, user)
+        };
 
         // Compose the request to the GPT-3 API
-        var response = await _gptService.GenerateCompletionAsync(prompt);
+        var response = (await _gptService.GenerateCompletionAsync(prompt)).First();
 
-        // Get the first response
-        var category = response.FirstOrDefault()?.Text?.Trim();
+        var ok = response.FinishReason?.ToLower() == "stop" && !string.IsNullOrEmpty(response.Message);
+        if (!ok)
+        {
+            throw new Exception($"Unknown exception occured: {response.FinishReason}, {response.Message}");
+        }
 
-        return category;
+        return response.Message!
+            .Split('\n', StringSplitOptions.TrimEntries) // Assume every item is a new line.
+            .Select(line => line.Split(',', StringSplitOptions.TrimEntries)) // Assume every item is id:category.
+            .Select(split => new EmailResponse() { Id = int.Parse(split[0]), Category = split[1] })
+            .ToList();
     }
+}
+
+internal class EmailRequest
+{
+    public int Id { get; set; }
+    public string Subject { get; set; }
+    public string Sender { get; set; }
+}
+
+internal class EmailResponse
+{
+    public int Id { get; set; }
+
+    public string Category { get; set; }
 }
