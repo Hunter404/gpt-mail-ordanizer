@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using GptMailOrganizer.Gpt.Services;
 using GptMailOrganizer.Mail.Services;
+using GptMailOrganizer.Models;
 
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(
@@ -24,15 +25,12 @@ using var host = Host.CreateDefaultBuilder(args)
                          ?? throw new InvalidOperationException("Missing 'OpenAI:ApiKey' in configuration.");
             services.AddSingleton<IGptService, GptService>(_ => new GptService(apiKey));
 
-            var mailServer = hostingContext.Configuration["IMAP:Host"]
-                             ?? throw new InvalidOperationException("Missing 'IMAP:Host' in configuration.");
-            var mailUsername = hostingContext.Configuration["IMAP:Username"]
-                               ?? throw new InvalidOperationException("Missing 'IMAP:Username' in configuration.");
-            var mailPassword = hostingContext.Configuration["IMAP:Password"]
-                               ?? throw new InvalidOperationException("Missing 'IMAP:Password' in configuration.");
+            var imapSettings = hostingContext.Configuration
+                .GetSection("Imap")
+                .Get<ImapSettings>();
 
-            services.AddSingleton<IMailService, MailService>(
-                serviceProvider => new MailService(serviceProvider.GetRequiredService<IGptService>(),mailServer, mailUsername, mailPassword));
+            services.AddSingleton<ImapSettings>(imapSettings);
+            services.AddSingleton<IMailService, MailService>();
         })
         .Build();
 
