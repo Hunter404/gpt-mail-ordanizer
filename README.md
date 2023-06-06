@@ -5,7 +5,7 @@ Since the project involves sensitive user credentials I won't offer a pre-built 
 ## About
 Uses ChatGPT to categorize the inbox of your mail by supplying the mails sender:subject to GPT and having it identify the best suitable category.
 Uses Chat GPT 3.5 over Prompt Davinci for cost efficiencies and it gave better results when identifying emails.
-Processes about 500 e-mails  
+Processes about 500 e-mails per $0.002
 
 ## Setup
 1. Copy appsettings.json to appsettings.production.json
