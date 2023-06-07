@@ -10,10 +10,7 @@ public class ImapSettings
     public string? Password { get; set; }
     public string? SecureSocketOptions { get; set; }
 
-    [MemberNotNull(nameof(Server))]
-    [MemberNotNull(nameof(Username))]
-    [MemberNotNull(nameof(Password))]
-    [MemberNotNull(nameof(SecureSocketOptions))]
+    [MemberNotNull(nameof(Server), nameof(Username), nameof(Password), nameof(SecureSocketOptions))]
     public void Validate()
     {
         if (string.IsNullOrEmpty(Server))
