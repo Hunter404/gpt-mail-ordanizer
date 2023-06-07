@@ -12,13 +12,16 @@ public class MailService : IMailService
 {
     private readonly string _categoriesQuery;
     private readonly IGptService _gptService;
-    private readonly ImapSettings _settings;
+    private readonly ImapSettings _imapSettings;
     private readonly MailSettings _mailSettings;
 
-    public MailService(IGptService gptService, ImapSettings settings, MailSettings mailSettings)
+    public MailService(IGptService gptService, ImapSettings imapSettings, MailSettings mailSettings)
     {
         _gptService = gptService;
-        _settings = settings;
+        
+        _imapSettings = imapSettings;
+        _imapSettings.Validate();
+
         _mailSettings = mailSettings;
         _mailSettings.Validate();
 
@@ -32,15 +35,15 @@ public class MailService : IMailService
     {
         if (!imapClient.IsConnected)
         {
-            if (!Enum.TryParse<SecureSocketOptions>(_settings.SecureSocketOptions, out var secureSocketOptions))
+            if (!Enum.TryParse<SecureSocketOptions>(_imapSettings.SecureSocketOptions, out var secureSocketOptions))
                 secureSocketOptions = SecureSocketOptions.SslOnConnect;
 
-            await imapClient.ConnectAsync(_settings.Server, _settings.Port, secureSocketOptions);
+            await imapClient.ConnectAsync(_imapSettings.Server, _imapSettings.Port, secureSocketOptions);
         }
 
         if (!imapClient.IsAuthenticated)
         {
-            await imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
+            await imapClient.AuthenticateAsync(_imapSettings.Username, _imapSettings.Password);
         }
     }
 

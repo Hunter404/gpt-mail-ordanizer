@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using GptMailOrganizer.Gpt.Services;
 using GptMailOrganizer.Mail.Models;
 using GptMailOrganizer.Mail.Services;
-using GptMailOrganizer.Models;
 
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(
@@ -30,7 +29,8 @@ using var host = Host.CreateDefaultBuilder(args)
 
             var imapSettings = hostingContext.Configuration
                 .GetSection("Imap")
-                .Get<ImapSettings>();
+                .Get<ImapSettings>() ?? throw new FormatException("Couldn't deserialize Imap settings.");
+            services.AddSingleton(imapSettings);
 
             var mailSettings = hostingContext.Configuration
                 .GetSection("Mail")
