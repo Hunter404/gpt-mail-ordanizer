@@ -1,6 +1,5 @@
 ﻿namespace GptMailOrganizer.Mail.Services;
 
-using System.Text;
 using Gpt.Services;
 using MailKit;
 using MailKit.Security;
@@ -70,24 +69,26 @@ public class MailService : IMailService
                     }
 
                     var batchSize = Math.Min(inbox.Count, _mailSettings.MaxBatchSize);
-                    var maxBatchSize = 50;
                     var emails = new List<EmailRequest>();
 
-                    for (var i = 0; i < Math.Min(inbox.Count, maxBatchSize); i++)
+                    // Subtract one since range of 0 to 50 is 51.
+                    var messages = await inbox.FetchAsync(0, batchSize - 1, MessageSummaryItems.UniqueId);
+                    foreach (var message in messages)
                     {
-                        // todo: this method of grabbing all mails is probably flawed in that the list gets shorter while the loop gets longer. Find a better solution.
-                        var message = await inbox.GetMessageAsync(i);
-                        var sender = message.From.ToString();
-                        var subject = message.Subject;
+                        var mail = await inbox.GetMessageAsync(message.UniqueId);
+                        var sender = mail.From.ToString();
+                        var subject = mail.Subject;
 
-                        emails.Add(new EmailRequest { Id = i, Sender = sender, Subject = subject });
+                        emails.Add(new EmailRequest(id: message.UniqueId.Id, sender: sender, subject: subject));
                     }
 
                     var emailResponses = await CategorizeEmailChunkAsync(emails);
+                    var folders = await inbox.GetSubfoldersAsync();
+
                     foreach (var item in emailResponses)
                     {
                         var targetFolder = folders.FirstOrDefault(f => f.Name == item.Category);
-                        await inbox.MoveToAsync(item.Id, targetFolder);
+                        await inbox.MoveToAsync(new UniqueId(item.Id), targetFolder);
 
                         Console.WriteLine($"Moved {item.Id} to {targetFolder}");
                     }
@@ -108,13 +109,6 @@ public class MailService : IMailService
     {
         var system =
             $"Please categorize the following emails, each identified by a unique ID, into these categories:{_categoriesQuery}."
-            + "Personal,"
-            + "Work,"
-            + "Spam,"
-            + "Newsletters,"
-            + "Social,"
-            + "Purchases,"
-            + "and Other."
             + "The format is ID,Sender,Subject."
             + "Reply with the ID and category, separated by a comma, no space.";
 
@@ -138,21 +132,34 @@ public class MailService : IMailService
         return response.Message!
             .Split('\n', StringSplitOptions.TrimEntries) // Assume every item is a new line.
             .Select(line => line.Split(',', StringSplitOptions.TrimEntries)) // Assume every item is id:category.
-            .Select(split => new EmailResponse() { Id = int.Parse(split[0]), Category = split[1] })
+            .Select(split => new EmailResponse(id: uint.Parse(split[0]), category: split[1]))
             .ToList();
     }
 }
 
 internal class EmailRequest
 {
-    public int Id { get; set; }
-    public string Subject { get; set; }
-    public string Sender { get; set; }
+    public EmailRequest(uint id, string sender, string subject)
+    {
+        Id = id;
+        Sender = sender;
+        Subject = subject;
+    }
+
+    public uint Id { get; }
+    public string Subject { get; }
+    public string Sender { get; }
 }
 
 internal class EmailResponse
 {
-    public int Id { get; set; }
+    public EmailResponse(uint id, string category)
+    {
+        Id = id;
+        Category = category;
+    }
 
-    public string Category { get; set; }
+    public uint Id { get; }
+
+    public string Category { get; }
 }
