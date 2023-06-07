@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using GptMailOrganizer.Gpt.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using GptMailOrganizer.Gpt.Services;
@@ -22,9 +23,10 @@ using var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(
         (hostingContext, services) =>
         {
-            var apiKey = hostingContext.Configuration["OpenAI:ApiKey"]
-                         ?? throw new InvalidOperationException("Missing 'OpenAI:ApiKey' in configuration.");
-            services.AddSingleton<IGptService, GptService>(_ => new GptService(apiKey));
+            var gptSettings = hostingContext.Configuration
+                .GetSection("OpenAi")
+                .Get<GptSettings>() ?? throw new FormatException("Couldn't deserialize OpenAi settings.");
+            services.AddSingleton<IGptService, GptService>(_ => new GptService(gptSettings));
 
             var imapSettings = hostingContext.Configuration
                 .GetSection("Imap")

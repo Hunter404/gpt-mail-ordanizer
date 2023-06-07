@@ -1,18 +1,20 @@
 ﻿namespace GptMailOrganizer.Gpt.Services;
 
-using System.Diagnostics.SymbolStore;
+using Models;
 using OpenAI;
 using OpenAI.Chat;
-using OpenAI.Models;
 using Choice = Models.Choice;
 
 public class GptService : IGptService
 {
-    private string _apiKey;
+    private readonly string _model;
+    private readonly string _apiKey;
 
-    public GptService(string apiKey)
+    public GptService(GptSettings gptSettings)
     {
-        _apiKey = apiKey;
+        gptSettings.Validate();
+        _model = gptSettings.Model;
+        _apiKey = gptSettings.ApiKey;
     }
 
     public async Task<IReadOnlyList<Choice>> GenerateCompletionAsync(List<Message> prompts)
@@ -20,7 +22,7 @@ public class GptService : IGptService
         var auth = new OpenAIAuthentication(_apiKey);
         var api = new OpenAIClient(auth);
 
-        var result = await api.ChatEndpoint.GetCompletionAsync(new ChatRequest(prompts, Model.GPT3_5_Turbo));
+        var result = await api.ChatEndpoint.GetCompletionAsync(new ChatRequest(prompts, model: _model));
 
         return result.Choices
             .Select(
