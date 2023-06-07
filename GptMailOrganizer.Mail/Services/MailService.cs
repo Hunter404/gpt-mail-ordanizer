@@ -10,13 +10,20 @@ using ImapClient = MailKit.Net.Imap.ImapClient;
 
 public class MailService : IMailService
 {
+    private readonly string _categoriesQuery;
     private readonly IGptService _gptService;
     private readonly ImapSettings _settings;
+    private readonly MailSettings _mailSettings;
 
-    public MailService(IGptService gptService, ImapSettings settings)
+    public MailService(IGptService gptService, ImapSettings settings, MailSettings mailSettings)
     {
         _gptService = gptService;
         _settings = settings;
+        _mailSettings = mailSettings;
+        _mailSettings.Validate();
+
+        _categoriesQuery = string.Join(",", _mailSettings.Categories.Take(_mailSettings.Categories.Length - 1));
+        _categoriesQuery += $",and {_mailSettings.Categories.Last()}.";
     }
 
     public async Task RunAsync() => await Task.Run(Main);
@@ -59,7 +66,7 @@ public class MailService : IMailService
                         continue;
                     }
 
-                    var folders = await inbox.GetSubfoldersAsync(false);
+                    var batchSize = Math.Min(inbox.Count, _mailSettings.MaxBatchSize);
                     var maxBatchSize = 50;
                     var emails = new List<EmailRequest>();
 
@@ -97,7 +104,7 @@ public class MailService : IMailService
     private async Task<List<EmailResponse>> CategorizeEmailChunkAsync(IReadOnlyList<EmailRequest> emails)
     {
         var system =
-            "Please categorize the following emails, each identified by a unique ID, into these categories:"
+            $"Please categorize the following emails, each identified by a unique ID, into these categories:{_categoriesQuery}."
             + "Personal,"
             + "Work,"
             + "Spam,"
