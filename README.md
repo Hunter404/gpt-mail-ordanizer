@@ -7,20 +7,19 @@ Uses ChatGPT to categorize the inbox of your mail by supplying the mails sender:
 Uses Chat GPT 3.5 over Prompt Davinci for cost efficiencies and it gave better results when identifying emails.
 Processes about 500 e-mails per $0.002
 
+
+GPT 3.5 identifies approximately 80% of the mails correctly and tends to lean more towards throwing everything into Work folder, I'm getting better results with GPT 4, but it is not yet openly available.
+
 ## Setup
 1. Copy appsettings.json to appsettings.production.json
 2. Fill in the required fields.
-3. Make sure these folders exist under your Inbox or edit MainService.cs:91
-    * Personal
-    * Work
-    * Spam
-    * Newsletters
-    * Social
-    * Purchases
-    * Other
+3. Make sure your configured categories exist under your Inbox.
 4. Compile and run.
 
 ## Roadmap
-- [ ] Expand on appsettings.json.
-   - [ ] Configure categories.
-   - [ ] Configure GPT models.
+- [x] Expand on appsettings.json.
+   - [x] Configure categories.
+   - [x] Configure GPT models.
+- [ ] Unit testing
+   - [ ] Test GptService
+   - [ ] Test MailService
