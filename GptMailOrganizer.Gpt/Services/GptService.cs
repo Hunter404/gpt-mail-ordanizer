@@ -25,12 +25,7 @@ public class GptService : IGptService
         var result = await api.ChatEndpoint.GetCompletionAsync(new ChatRequest(prompts, model: _model));
 
         return result.Choices
-            .Select(
-            x => new Choice
-            {
-                Message = x.Message,
-                FinishReason = x.FinishReason,
-            })
+            .Select(x => new Choice(x.Message, x.FinishReason))
             .ToArray();
     }
 }
