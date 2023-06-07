@@ -18,8 +18,14 @@ GPT 3.5 identifies approximately 80% of the mails correctly and tends to lean mo
 
 ## Roadmap
 - [x] Expand on appsettings.json.
-   - [x] Configure categories.
-   - [x] Configure GPT models.
+  - [x] Configure categories.
+  - [x] Configure GPT models.
 - [ ] Unit testing
-   - [ ] Test GptService
-   - [ ] Test MailService
+  - [ ] Test GptService
+  - [ ] Test MailService
+- [ ] Handle recurrent senders<br/>
+  Most emails are from recurrent senders, i.e. newsletters, orders etc.
+  These usually have a predetermined email address i.e. noreply or info.
+  These should be sorted into the correct category determined by the sender's address.
+- [ ] Automatic categories for recurrent senders<br/>
+  Another useful feature would be to determine when a recurrent sender is large enough to warrant it's own category in the sub-directory.
