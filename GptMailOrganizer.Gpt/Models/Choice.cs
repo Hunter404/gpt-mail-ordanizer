@@ -2,6 +2,6 @@
 
 public class Choice
 {
-    public string? Message { get; set; }
-    public string? FinishReason { get; set; }
+    public string? Message { get; init; }
+    public string? FinishReason { get; init; }
 }
